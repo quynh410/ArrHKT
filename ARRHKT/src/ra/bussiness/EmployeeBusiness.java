@@ -1,46 +1,49 @@
 package ra.bussiness;
 
 import ra.entity.Employee;
-import java.util.ArrayList;
 import java.util.Scanner;
 
 public class EmployeeBusiness {
-    private ArrayList<Employee> employees = new ArrayList<>();
+    private Employee[] employees = new Employee[100];
+    private int count = 0;
 
     public void addEmployee(Scanner sc) {
-        System.out.print("Nhập số lượng nhân viên cần thêm: ");
+        if (count >= employees.length) {
+            System.out.println("Danh sách nhân viên đã đầy, không thể thêm mới!");
+            return;
+        }
+
         int num;
-        while (true) {
+        do {
+            System.out.print("Nhập số lượng nhân viên cần thêm: ");
             while (!sc.hasNextInt()) {
                 System.out.print("Số lượng không hợp lệ. Nhập lại: ");
                 sc.next();
             }
             num = sc.nextInt();
-            sc.nextLine();
-            if (num > 0) break;
-            System.out.print("Số lượng phải lớn hơn 0. Nhập lại: ");
-        }
+        } while (num <= 0 || num > (employees.length - count));
+        sc.nextLine();
 
         for (int i = 0; i < num; i++) {
             Employee emp = new Employee();
             emp.inputData(sc);
-            employees.add(emp);
+            employees[count++] = emp;
         }
         System.out.println("Thêm nhân viên thành công!");
     }
 
     public void displayAllEmployees() {
-        if (employees.isEmpty()) {
+        if (count == 0) {
             System.out.println("Danh sách nhân viên trống.");
             return;
         }
-        for (Employee emp : employees) {
-            emp.displayData();
+        for (int i = 0; i < count; i++) {
+            employees[i].displayData();
         }
     }
 
     public void editEmployee(Scanner sc) {
-        if (employees.isEmpty()) {
+        if (count == 0) {
             System.out.println("Danh sách nhân viên trống.");
             return;
         }
@@ -48,10 +51,10 @@ public class EmployeeBusiness {
         System.out.print("Nhập mã nhân viên cần chỉnh sửa: ");
         String id = sc.nextLine();
 
-        for (Employee emp : employees) {
-            if (emp.getEmployeeId().equalsIgnoreCase(id)) {
-                emp.displayData();
-                emp.inputData(sc);
+        for (int i = 0; i < count; i++) {
+            if (employees[i].getEmployeeId().equalsIgnoreCase(id)) {
+                employees[i].displayData();
+                employees[i].inputData(sc);
                 System.out.println("Cập nhật thông tin thành công!");
                 return;
             }
@@ -60,7 +63,7 @@ public class EmployeeBusiness {
     }
 
     public void deleteEmployee(Scanner sc) {
-        if (employees.isEmpty()) {
+        if (count == 0) {
             System.out.println("Danh sách nhân viên trống.");
             return;
         }
@@ -68,14 +71,17 @@ public class EmployeeBusiness {
         System.out.print("Nhập mã nhân viên cần xóa: ");
         String id = sc.nextLine();
 
-        for (Employee emp : employees) {
-            if (emp.getEmployeeId().equalsIgnoreCase(id)) {
+        for (int i = 0; i < count; i++) {
+            if (employees[i].getEmployeeId().equalsIgnoreCase(id)) {
                 System.out.print("Bạn có chắc chắn muốn xóa? (Y/N): ");
                 char confirm = sc.next().charAt(0);
                 sc.nextLine();
 
                 if (confirm == 'Y' || confirm == 'y') {
-                    employees.remove(emp);
+                    for (int j = i; j < count - 1; j++) {
+                        employees[j] = employees[j + 1];
+                    }
+                    employees[--count] = null;
                     System.out.println("Xóa nhân viên thành công!");
                 } else {
                     System.out.println("Hủy thao tác xóa.");
@@ -87,16 +93,24 @@ public class EmployeeBusiness {
     }
 
     public void sortEmployees() {
-        if (employees.isEmpty()) {
+        if (count == 0) {
             System.out.println("Danh sách nhân viên trống.");
             return;
         }
-        employees.sort((e1, e2) -> e1.getEmployeeId().compareTo(e2.getEmployeeId()));
+        for (int i = 0; i < count - 1; i++) {
+            for (int j = i + 1; j < count; j++) {
+                if (employees[i].getEmployeeId().compareTo(employees[j].getEmployeeId()) > 0) {
+                    Employee temp = employees[i];
+                    employees[i] = employees[j];
+                    employees[j] = temp;
+                }
+            }
+        }
         System.out.println("Sắp xếp nhân viên theo mã nhân viên thành công!");
     }
 
     public void searchEmployee(Scanner sc) {
-        if (employees.isEmpty()) {
+        if (count == 0) {
             System.out.println("Danh sách nhân viên trống.");
             return;
         }
@@ -105,9 +119,9 @@ public class EmployeeBusiness {
         String name = sc.nextLine().toLowerCase();
         boolean found = false;
 
-        for (Employee emp : employees) {
-            if (emp.getEmployeeName().toLowerCase().contains(name)) {
-                emp.displayData();
+        for (int i = 0; i < count; i++) {
+            if (employees[i].getEmployeeName().toLowerCase().contains(name)) {
+                employees[i].displayData();
                 found = true;
             }
         }
